@@ -3,11 +3,15 @@ title: "Reproducible Research: Peer Assessment 1"
 output: 
   html_document:
     keep_md: true
+    self_contained: yes
 ---
 
 ## Loading and preprocessing the data
 ```{R message=FALSE, warning=FALSE}
 library(dplyr)
+
+# set locale
+Sys.setlocale("LC_TIME", "C")
 
 # read data from zipfile
 data <- read.csv(unz("activity.zip","activity.csv"))
@@ -24,11 +28,11 @@ data_nona <- data %>% filter(!is.na(data$Steps))
 
 
 ## What is mean total number of steps taken per day?
-```{R}
+```{R message=FALSE, warning=FALSE}
 
 # group by date and summarise steps
 steps_total <- data_nona %>% group_by(Date) %>% summarise(Sum=sum(Steps, na.rm=TRUE))
-hist(steps_total$Sum, breaks=25, col="green", main="Histogram of total steps", xlab="Steps")
+hist(steps_total$Sum, breaks=25, col="green", main="Histogram of total steps",xlab="Steps")
 
 mean_steps=mean(steps_total$Sum)
 median_steps=median(steps_total$Sum)
@@ -41,10 +45,11 @@ Median steps a day: `r format(median_steps, nsmall=2, scientific=FALSE)`
 
 
 ## What is the average daily activity pattern?
-```{R}
+```{R message=FALSE, warning=FALSE}
 # group by interval an average steps
 steps_int <- data_nona %>% group_by(Interval) %>% summarise(Avg=mean(Steps, na.rm=TRUE))
 names(steps_int) <- c("Interval","Avg")
+
 plot(steps_int, type="l", ylab="Avg. steps")
 
 # get interval with maximal average steps
@@ -56,7 +61,7 @@ Interval with the max number of steps is **`r max_int$Interval`** with **`r form
 
 
 ## Imputing missing values
-```{R}
+```{R message=FALSE, warning=FALSE}
 # get number of NA values in dataset
 cnt_na <- count(data %>% filter(is.na(data$Steps)))
 ```
@@ -96,10 +101,7 @@ The mean and median values are now equal and the peak in the histogram is more p
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{R}
-# set locale
-Sys.setlocale("LC_TIME", "C")
-
+```{R message=FALSE, warning=FALSE}
 # create column with weekday
 data_imp$Weekday<-weekdays(data_imp$Date)
 
@@ -120,11 +122,8 @@ data_imp$Weekend <- sapply(data_imp$Weekday,is_weekend)
 
 # group by interval an average steps
 steps_int_weekend <- data_imp %>% group_by(Interval,Weekend) %>% summarise(Avg=mean(Steps))
-#names(steps_int_weekend) <- c("Interval","Weekend","Avg")
 
 library(lattice)
-xyplot(Avg ~ Interval| Weekend, steps_int_weekend, layout=c(1,2), type="l", ylab="Number of steps")
-#xyplot(Avg ~ Interval, steps_int_weekend)
-#plot(steps_int_weekday, type="l", xlab="Interval", ylab="Avg. steps", main="Weekday")
-#plot(steps_int_weekend, type="l", xlab="Interval", ylab="Avg. steps", main="Weekend")
+xyplot(Avg ~ Interval| Weekend, steps_int_weekend, layout=c(1,2), type="l", 
+       ylab="Number of steps")
 ```
